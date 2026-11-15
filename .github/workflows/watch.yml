@@ -32,17 +32,19 @@ jobs:
           key: watcher-state-${{ github.run_id }}
           restore-keys: watcher-state-
 
-      - name: Test WhatsApp (only on manual "Run workflow")
+      - name: Test alert email (only on manual "Run workflow")
         if: github.event_name == 'workflow_dispatch'
         env:
-          WA_APIKEY: ${{ secrets.WA_APIKEY }}
-          WA_PHONE: ${{ secrets.WA_PHONE }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
         run: python goethe_a2_watcher.py --test-alert
 
       - name: Check Goethe page (every 2 min for 4 min)
         env:
-          WA_APIKEY: ${{ secrets.WA_APIKEY }}
-          WA_PHONE: ${{ secrets.WA_PHONE }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
         run: python goethe_a2_watcher.py --for-minutes 4
 
       - name: Save state

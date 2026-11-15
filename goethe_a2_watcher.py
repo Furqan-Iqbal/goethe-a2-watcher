@@ -6,7 +6,7 @@ What it does
   - Opens the official A2 exam page every 2 minutes in a headless browser
   - Looks for exam dates in Islamabad and whether they can be booked
   - The moment a bookable Islamabad date appears (or the Islamabad list changes):
-      * sends a WhatsApp message to the number in WA_PHONE (and Telegram, optional)
+      * sends an email (Gmail), optional WhatsApp / Telegram
       * plays an alarm sound
       * opens the booking page in your normal browser so you can book at once
       * saves a screenshot of what it saw
@@ -52,6 +52,11 @@ HEARTBEAT_HOURS = 6                # "still running" WhatsApp every 6 hours, so 
 WHATSAPP_PHONE = os.environ.get("WA_PHONE") or ""   # your WhatsApp number, set as env var / GitHub secret
 WHATSAPP_APIKEY = os.environ.get("WA_APIKEY", "")
 
+# Email alerts via Gmail (needs a Gmail "app password", see GITHUB_SETUP.txt)
+MAIL_USER = os.environ.get("MAIL_USER") or ""     # the Gmail address that sends
+MAIL_PASS = os.environ.get("MAIL_PASS") or ""     # 16-letter app password, NOT the normal password
+MAIL_TO = os.environ.get("MAIL_TO") or MAIL_USER  # where alerts go
+
 # Telegram (optional, second channel). Create a bot with @BotFather, send it one message,
 # then get your chat id from https://api.telegram.org/bot<TOKEN>/getUpdates
 TELEGRAM_BOT_TOKEN = os.environ.get("TG_TOKEN", "")
@@ -85,8 +90,6 @@ PROBLEMS = []   # anything here makes a GitHub run fail (red), and GitHub then e
 
 def whatsapp(text):
     if not (WHATSAPP_APIKEY and WHATSAPP_PHONE):
-        PROBLEMS.append("WA_APIKEY or WA_PHONE is not set, WhatsApp cannot be sent")
-        log(PROBLEMS[-1])
         return
     try:
         import requests
@@ -106,7 +109,32 @@ def whatsapp(text):
         log(PROBLEMS[-1])
 
 
+def email(text):
+    if not (MAIL_USER and MAIL_PASS):
+        return
+    try:
+        import smtplib
+        from email.message import EmailMessage
+        m = EmailMessage()
+        m["Subject"] = text.split("\n")[0][:120]
+        m["From"] = MAIL_USER
+        m["To"] = MAIL_TO
+        m.set_content(text)
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as smtp:
+            smtp.login(MAIL_USER, MAIL_PASS)
+            smtp.send_message(m)
+        log(f"Email sent to {MAIL_TO}")
+    except Exception as e:
+        PROBLEMS.append(f"Email failed: {e}")
+        log(PROBLEMS[-1])
+
+
 def notify(text):
+    if not ((MAIL_USER and MAIL_PASS) or WHATSAPP_APIKEY or TELEGRAM_BOT_TOKEN):
+        PROBLEMS.append("No alert channel set (MAIL_USER + MAIL_PASS missing), nobody can be notified")
+        log(PROBLEMS[-1])
+        return
+    email(text)
     whatsapp(text)
     telegram(text)
 
