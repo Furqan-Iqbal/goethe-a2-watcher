@@ -1,0 +1,55 @@
+name: Goethe A2 Islamabad watcher
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"     # GitHub starts it every 5 min (often a few minutes late)
+  workflow_dispatch: {}         # "Run workflow" button for a manual test
+
+concurrency:
+  group: goethe-watcher
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          pip install playwright requests
+          python -m playwright install --with-deps chromium
+
+      - name: Restore last state
+        uses: actions/cache/restore@v4
+        with:
+          path: watcher_state.json
+          key: watcher-state-${{ github.run_id }}
+          restore-keys: watcher-state-
+
+      - name: Check Goethe page (every 2 min for 4 min)
+        env:
+          WA_APIKEY: ${{ secrets.WA_APIKEY }}
+          WA_PHONE: ${{ secrets.WA_PHONE }}
+        run: python goethe_a2_watcher.py --for-minutes 4
+
+      - name: Save state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: watcher_state.json
+          key: watcher-state-${{ github.run_id }}
+
+      - name: Keep screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ github.run_id }}
+          path: screenshots/
+          if-no-files-found: ignore
+          retention-days: 3
