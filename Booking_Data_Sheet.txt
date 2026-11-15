@@ -1,0 +1,35 @@
+GOETHE-ZERTIFIKAT A2, ISLAMABAD (NUML, H-9), BOOKING DATA
+=========================================================
+Copy and paste from here during booking. Fill the blanks before slots open.
+
+CANDIDATE 1: AZLAN
+  First name:        Azlan
+  Last name:         Iqbal
+  Date of birth:     14.08.2001
+  Place of birth:    ________________
+  Gender:            Male
+  Nationality:       Pakistani
+  Passport no.:      CJ135744
+  Passport valid to: ________________
+  Address:           ________________  Peshawar, Pakistan
+  Mobile:            ________________
+  Email (own, for Mein Goethe account): ________________
+  Exam:              Goethe-Zertifikat A2 (adults), all modules
+
+CANDIDATE 2: FAIZAN
+  First name:        Faizan
+  Last name:         Iqbal
+  Date of birth:     ________________
+  Place of birth:    ________________
+  Gender:            Male
+  Nationality:       Pakistani
+  Passport no.:      ________________
+  Passport valid to: ________________
+  Address:           ________________  Peshawar, Pakistan
+  Mobile:            ________________
+  Email (own, for Mein Goethe account): ________________
+  Exam:              Goethe-Zertifikat A2 (adults), all modules
+
+Names must be spelled exactly as in the passport.
+Exam venue: National University of Modern Languages, Department of German
+Studies, Ghalib Block, Sector H-9, Islamabad. Questions: exam-karachi@goethe.de

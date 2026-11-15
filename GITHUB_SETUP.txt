@@ -1,0 +1,29 @@
+RUN THE WATCHER ON GITHUB (laptop can be off)
+=============================================
+In WSL, inside this folder:
+
+  1. Create the repo and push (PUBLIC repo = free Actions minutes; a private
+     repo would use up its 2000 free minutes in about 2 days):
+       sudo apt install -y gh        # if gh is missing
+       gh auth login                 # GitHub.com, HTTPS, login with browser
+       git init -b main
+       git add goethe_a2_watcher.py README.txt .gitignore .github
+       git commit -m "Goethe A2 Islamabad watcher"
+       gh repo create goethe-a2-watcher --public --source . --push
+
+     Do NOT add Booking_Data_Sheet.txt (passport data). .gitignore and the
+     git add line above keep it out.
+
+  2. Add the two secrets (secrets stay hidden even in a public repo):
+       gh secret set WA_APIKEY      # paste the CallMeBot key
+       gh secret set WA_PHONE       # paste +4915163146594
+
+  3. Start a first run now:
+       gh workflow run watch.yml
+       gh run watch                  # follow it live
+     Within ~2 minutes you should get "Goethe watcher STARTED" on WhatsApp.
+
+After that GitHub runs it by itself every 5 minutes (often 5 to 15 minutes in
+practice), each run checks 3 times over 4 minutes. A "still running" WhatsApp
+comes every 6 hours. To stop it: repo > Actions > the workflow > "..." >
+Disable workflow.
