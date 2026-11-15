@@ -80,8 +80,13 @@ def log(msg):
     print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {msg}", flush=True)
 
 
+PROBLEMS = []   # anything here makes a GitHub run fail (red), and GitHub then emails you
+
+
 def whatsapp(text):
     if not (WHATSAPP_APIKEY and WHATSAPP_PHONE):
+        PROBLEMS.append("WA_APIKEY or WA_PHONE is not set, WhatsApp cannot be sent")
+        log(PROBLEMS[-1])
         return
     try:
         import requests
@@ -90,10 +95,15 @@ def whatsapp(text):
             params={"phone": WHATSAPP_PHONE, "text": text[:900], "apikey": WHATSAPP_APIKEY},
             timeout=30,
         )
-        if r.status_code != 200:
-            log(f"WhatsApp failed: HTTP {r.status_code} {r.text[:200]}")
+        body = r.text.lower()
+        if r.status_code != 200 or "invalid" in body or "error" in body:
+            PROBLEMS.append(f"WhatsApp failed: HTTP {r.status_code} {r.text[:200]}")
+            log(PROBLEMS[-1])
+        else:
+            log("WhatsApp sent")
     except Exception as e:
-        log(f"WhatsApp failed: {e}")
+        PROBLEMS.append(f"WhatsApp failed: {e}")
+        log(PROBLEMS[-1])
 
 
 def notify(text):
@@ -306,10 +316,11 @@ def run(show=False, once=False, for_minutes=0):
             except Exception as e:
                 fails += 1
                 log(f"Check failed ({fails}): {e}")
-                if once:
-                    state["fails"] = state.get("fails", 0) + 1
-                    save_state(state)
-                if fails == 5 or (once and os.environ.get("CI") and state.get("fails", 0) + 1 == 5):
+                state["fails"] = state.get("fails", 0) + 1
+                save_state(state)
+                if state["fails"] >= 5:
+                    PROBLEMS.append(f"Goethe page check failed {state['fails']} times in a row: {e}")
+                if state["fails"] == 5:
                     notify("Goethe watcher: 5 failed checks in a row. Site may be down or changed. Check manually.")
 
             if once:
@@ -334,9 +345,12 @@ if __name__ == "__main__":
     if a.test_alert:
         notify("Goethe watcher test message. Alerts work.")
         alarm()
-        log("Test alert sent.")
+        log("Test alert done.")
     else:
         try:
             run(show=a.show, once=a.once, for_minutes=a.for_minutes)
         except KeyboardInterrupt:
             log("Stopped.")
+    if PROBLEMS:
+        log("PROBLEMS: " + " | ".join(dict.fromkeys(PROBLEMS)))
+        sys.exit(1)
